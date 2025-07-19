@@ -6,16 +6,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/cert-manager/cert-manager/pkg/acme/webhook/apis/acme/v1alpha1"
+	"github.com/cert-manager/cert-manager/pkg/acme/webhook/cmd"
 	"github.com/deyaeddin/cert-manager-webhook-hetzner/internal"
-	"github.com/jetstack/cert-manager/pkg/acme/webhook/apis/acme/v1alpha1"
-	"github.com/jetstack/cert-manager/pkg/acme/webhook/cmd"
 	"go.uber.org/zap"
 	"io"
-	"io/ioutil"
-	extapi "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1beta1"
+	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -135,7 +135,7 @@ func (c *hetznerDNSProviderSolver) Initialize(kubeClientConfig *rest.Config, sto
 	return nil
 }
 
-func loadConfig(cfgJSON *extapi.JSON) (hetznerDNSProviderConfig, error) {
+func loadConfig(cfgJSON *v1.JSON) (hetznerDNSProviderConfig, error) {
 	cfg := hetznerDNSProviderConfig{}
 	// handle the 'base case' where no configuration has been provided
 	if cfgJSON == nil {
@@ -244,7 +244,10 @@ func callDnsApi(url string, method string, body io.Reader, config internal.Confi
 		}
 	}()
 
-	respBody, _ := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
+	if err != nil {
+		log.Fatalf("error reading response body: %v", err)
+	}
 	if resp.StatusCode == http.StatusOK {
 		return respBody, nil
 	}

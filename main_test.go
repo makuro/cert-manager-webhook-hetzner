@@ -2,9 +2,8 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/jetstack/cert-manager/test/acme/dns"
+	"github.com/cert-manager/cert-manager/test/acme"
 	"gopkg.in/yaml.v3"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"testing"
@@ -47,7 +46,7 @@ func TestRunsSuite(t *testing.T) {
 	if err != nil {
 		slogger.Error(err)
 	}
-	_ = ioutil.WriteFile(secretYamlFilePath, secretYamlFile, 0644)
+	_ = os.WriteFile(secretYamlFilePath, secretYamlFile, 0644)
 
 	providerConfig := hetznerDNSProviderConfig{
 		secretName,
@@ -55,7 +54,7 @@ func TestRunsSuite(t *testing.T) {
 		"https://dns.hetzner.com/api/v1",
 	}
 	file, _ := json.MarshalIndent(providerConfig, "", " ")
-	_ = ioutil.WriteFile(configFile, file, 0644)
+	_ = os.WriteFile(configFile, file, 0644)
 
 	// The manifest path should contain a file named config.json that is a
 	// snippet of valid configuration that should be included on the
@@ -68,7 +67,6 @@ func TestRunsSuite(t *testing.T) {
 		dns.SetResolvedFQDN(fqdn),
 		dns.SetAllowAmbientCredentials(false),
 		dns.SetManifestPath("testdata/hetzner"),
-		dns.SetBinariesPath("_test/kubebuilder/bin"),
 		dns.SetStrict(false),
 	)
 
